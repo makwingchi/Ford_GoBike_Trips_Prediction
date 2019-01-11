@@ -1,45 +1,4 @@
----
-title: "Predicting Bike Departure and Arrival in San Francisco"
-author: "Rongzhi Mai"
-date: "Dec. 20th, 2018"
-output:
-  html_document:
-    code_folding: hide
-    theme: readable
----
-
-<style type="text/css">
-
-body{ /* Normal  */
-      font-size: 15px;
-  }
-td {  /* Table  */
-  font-size: 13px;
-}
-h1.title {
-  font-size: 38px;
-  color: Grey4;
-}
-h1 { /* Header 1 */
-  font-size: 28px;
-  color: Darkblue;
-}
-h2 { /* Header 2 */
-    font-size: 22px;
-  color: Darkblue;
-}
-h3 { /* Header 3 */
-  font-size: 18px;
-  color: Darkblue;
-}
-code.r{ /* Code block */
-    font-size: 12px;
-}
-pre { /* Code block - determines code spacing between lines */
-    font-size: 12px;
-}
-</style>
-
+# Predicting Bike Departure and Arrival in San Francisco
 
 * [1. Introduction](#link1)
 * [2. Data](#link2)
@@ -80,19 +39,19 @@ pre { /* Code block - determines code spacing between lines */
 
 
 
-# 1. Introduction{#link1}
+# 1. Introduction
 
 Beginning operation in 2013, the Ford GoBike system currently has over 2,600 bicycles in 262 stations across San Francisco, East Bay and San Jose. Similar to other bike sharing systems in the country, Ford GoBike has suffered from the problem of systematic imbalance. Temporally, bikes tend to pile up downtown in the morning and on the outskirts in the afternoon. Spatially, people are happy to rent a bike and roll on down the hill, but reluctant to go the other way. Therefore, it is common to see that some stations are empty (or full), preventing users from borrowing (or returning) bikes. These imbalances cause inconvenience in using Ford GoBike services. 
 
 In order to make Ford Gobike more connected, smart, and efficient, we have designed an App to deal with the imbalance problem. With the new App, users are able to plan their trips by setting a location and a future departure time. The App will show the predicted number of bikes and docks in the time selected. Then, it will provide three most recommended routes according to the availability of bikes and docks at the origin and destination, respectively. The App will also encourage users moving bikes from full stations to empty stations by giving bonus points as coupons. 
 
-The main use case of the App, namely predicting hourly bike/dock availability, is based on two Poisson Regression models. Though there are still rooms for improvement, the models are proved to be both accurate and generalizable. Overall, the differences between predicted and observed values are less than 1.7, indicating the number of departure/arrival our model generates will just slightly differ from the true values. Additionally, the models°Ø performances are quite stable across time and space. We thus firmly believe this methodology can guide the rebalancing process of Ford Gobike, as well as the bike sharing systems in other U.S. cities. 
+The main use case of the App, namely predicting hourly bike/dock availability, is based on two Poisson Regression models. Though there are still rooms for improvement, the models are proved to be both accurate and generalizable. Overall, the differences between predicted and observed values are less than 1.7, indicating the number of departure/arrival our model generates will just slightly differ from the true values. Additionally, the models‚Äô performances are quite stable across time and space. We thus firmly believe this methodology can guide the rebalancing process of Ford Gobike, as well as the bike sharing systems in other U.S. cities. 
 
 The rest of this material will detail the model building and validation process, and how these models meet the use case we set out to address.
 
 ***
 
-# 2. Data{#link2}
+# 2. Data
 
 The purposes of our models are to predict hourly departure and arrival of each bikeshare station, respectively. We select 144 Ford GoBike stations, and download bike trip records from 10/14/2018 to 10/20/2018. Below shows the location of the stations involved in this study.
 
@@ -361,8 +320,8 @@ All the data comes from the following five sources:
 
 ***
 
-# 3. Exploratory Analysis{#link3}
-## 3.1. Distribution of dependent variable{#link4}
+# 3. Exploratory Analysis
+## 3.1. Distribution of dependent variable
 In this section, we will first look at the distributions of the two dependent variable - the number of departure of each station in each hour, and the number of arrival of each station in each hour. This analysis can inform us which kind of regression we should use. 
 
 
@@ -396,7 +355,7 @@ As shown in the above histograms, the two distributions are similar to one anoth
  			
 It indicates that Poisson regression is more suitable for the models.
 
-## 3.2. Number of departures/arrivals in each day{#link5}
+## 3.2. Number of departures/arrivals in each day
 The training set we use records the number of departures/arrivals for each station in every hour from Oct. 14th to Oct. 20th. Here, we calculate the total number of departures/arrivals in every single day. Not surprisingly, the patterns of departure are similar to the ones of arrival, for the total number of departures should equal that of arrivals in each day. In addition, the trends of weekday are considerably different from the ones of weekend. On weekdays, there are typically two peaks when the number of trips are extremely high, while at weekends, the curves look like bumps, and peak hours do not exist. It indicates that this time fixed effect should be identified when building the models.
 
 
@@ -436,8 +395,8 @@ vars_train %>%
 
 <img src="final_markdown_files/figure-html/number of trips per day-1.png" width="50%" /><img src="final_markdown_files/figure-html/number of trips per day-2.png" width="50%" />
 
-## 3.3. Number of departures/arrivals in each neighborhood{#link6}
-The histograms below are each neighborhood°Øs total number of departures and arrivals in the training set, respectively. The top 4 neighborhoods are identical in both histograms, and the number of trips of them are considerably higher than their counterparts. It indicates that this neighborhood fixed effect should be identified when building models. In fact, as can be noted later, both of our models include an independent variable called °∞eastMost°± - if a certain station is located within these top 4 neighborhoods, they will be coded as 1.
+## 3.3. Number of departures/arrivals in each neighborhood
+The histograms below are each neighborhood‚Äôs total number of departures and arrivals in the training set, respectively. The top 4 neighborhoods are identical in both histograms, and the number of trips of them are considerably higher than their counterparts. It indicates that this neighborhood fixed effect should be identified when building models. In fact, as can be noted later, both of our models include an independent variable called ‚ÄúeastMost‚Äù - if a certain station is located within these top 4 neighborhoods, they will be coded as 1.
 
 
 ```r
@@ -479,8 +438,8 @@ vars_train %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 
-## 3.4. Spatial autocorrelation{#link7}
-We perform Moran°Øs I test to check whether the total number of departures/arrivals of each station in the training set is spatially correlated to its nearest 5 bikeshare stations.
+## 3.4. Spatial autocorrelation
+We perform Moran‚Äôs I test to check whether the total number of departures/arrivals of each station in the training set is spatially correlated to its nearest 5 bikeshare stations.
 
 
 ```r
@@ -545,7 +504,7 @@ data.frame('Departure' = moran.test(stationDeparture$departure, nb2listw(spatial
 </tbody>
 </table>
 
-## 3.5. Temporal autocorrelation{#link8}
+## 3.5. Temporal autocorrelation
 The sample autocorrelation function (ACF) can be used to identify the possible structure of time series data. It gives correlations between the data series and lagged values of the series for lags of 1, 2, 3, and so on. A value higher or lower than the blue dashed line indicates that the correlation is statistically significant. 
 
 We randomly pick one bikeshare station to check whether temporal autocorrelation exists in departures and arrivals. Shown in the plots below, both departure and arrival are significantly correlated with several numbers in the past. This temporal lag effect should be included in our prediction models.
@@ -582,7 +541,7 @@ autoplot(acf(vars_train %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 
-## 3.6. Popular stations on weekdays and at weekend{#link9}
+## 3.6. Popular stations on weekdays and at weekend
 In this section, we calculate the sum of departures/arrivals of each station on weekdays as well as at weekend, and arrange them according to the total number in descending order. What can be noted is that the popular stations are different for weekday and weekend. For instance, the number of total departure of San Francisco Caltrain Station 2 is the highest on weekdays, but it is not among the top 10 stations regarding weekend departures. Based on this finding, we will add a dummy variable to identify whether a specific station is popular at weekends in the model building process.
 
 
@@ -717,7 +676,7 @@ vars_train %>%
 </tbody>
 </table>
 
-## 3.7. Relationship between dependent and independent variables{#link10}
+## 3.7. Relationship between dependent and independent variables
 Below are two multi-scatterplot visualization that display the relationships between the dependent variable and independent variables. For both models, the degree to which the lagged variables are associated with the dependent variable is the highest.
 
 
@@ -769,7 +728,7 @@ vars_train %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-11-1.png" width="864" />
 
-## 3.8. Summary Statistics{#link11}
+## 3.8. Summary Statistics
 Below are the summary statistics of the variables we use in the models.
 
 
@@ -832,8 +791,8 @@ stargazer(vars_train %>%
 
 ***
 
-# 4. Model Building{#link12}
-We apply the same methodology, i.e. forward stepwise, when building both models. We start with no variables in the model, test the model°Øs overall MAE after the addition of each variable, add the statistically significant variable whose inclusion gives the largest amount of MAE decrease, and repeat this process until none improves the model.
+# 4. Model Building
+We apply the same methodology, i.e. forward stepwise, when building both models. We start with no variables in the model, test the model‚Äôs overall MAE after the addition of each variable, add the statistically significant variable whose inclusion gives the largest amount of MAE decrease, and repeat this process until none improves the model.
 
 Results show that a large majority of preditors are significant.
 
@@ -1011,8 +970,8 @@ stargazer(glm1, glm2, type="text")
 
 ***
 
-# 5. Model Validation{#link13}
-## 5.1. In-sample Prediction{#link14}
+# 5. Model Validation
+## 5.1. In-sample Prediction
 The histograms below show the distribution of residuals of departure model and arrival model, respectively. Both models tend to underpredict the dependent variable, as a large number of residuals are around minus one. But overall there does not exist very extreme figures, so these two models can be considered accurate.
 
 
@@ -1056,7 +1015,7 @@ ggplot(glm2Attributes) +
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-14-1.png" width="50%" /><img src="final_markdown_files/figure-html/unnamed-chunk-14-2.png" width="50%" />
 
-## 5.2. Out-of-sample Prediction{#link15}
+## 5.2. Out-of-sample Prediction
 To evaluate whether our models are able to perform similarly well in the datasets they have never seen, we select the bike trips on Oct. 21st, which is a Sunday, and Oct. 22nd, which is a Monday, as our test sets. The metric used here is the Mean Absolute Error (MAE), which measures the average difference of predicted and observed departures/arrivals in absolute values. For instance, if the departure MAE equals 2 in a particular day, it means on average, the predicted departure differs from observed departure by an amount of 2. There is another metric called Mean Absolute Percentage Error (MAPE), which is used quite often as well. This analysis chooses MAE for the following reasons: 1. Many observed values equal 0, leading to a MAPE of infinity; 2. The observed value being 1 and the predicted value being 2 will result in a MAPE of 100%, while the observed value being 10 and the predicted value being 20 will result in the exact same MAPE. Nonetheless, for count variables (in this case, departure and arrival), the impact of the former is much more marginal.
 
 
@@ -1147,8 +1106,8 @@ data.frame('Weekday' = c(mean(glm1.1PredValues$absError), mean(glm2.1PredValues$
 </tbody>
 </table>
 
-## 5.3. Cross-Validation{#link16}
-Cross-validation allows us to see how generalizable our model is to a number of random samples, instead of two samples in the previous section. Here, we used an algorithm called °∞100-fold cross-validation°±. This methodology allows us to first partition the entire dataset into 100 equally sized subsets, hold out one of those subsets as the test set, train the model using the remaining 99 subsets, predict for the hold out subset, and record a goodness of fit metric. The average of the goodness of fit metrics across all 100 folds will also be generated.
+## 5.3. Cross-Validation
+Cross-validation allows us to see how generalizable our model is to a number of random samples, instead of two samples in the previous section. Here, we used an algorithm called ‚Äú100-fold cross-validation‚Äù. This methodology allows us to first partition the entire dataset into 100 equally sized subsets, hold out one of those subsets as the test set, train the model using the remaining 99 subsets, predict for the hold out subset, and record a goodness of fit metric. The average of the goodness of fit metrics across all 100 folds will also be generated.
 
 
 ```r
@@ -1241,10 +1200,10 @@ ggplot(as.data.frame(glm2Fit$resample), aes(MAE)) +
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-19-1.png" width="50%" /><img src="final_markdown_files/figure-html/unnamed-chunk-19-2.png" width="50%" />
 
-## 5.4. Generalizability across space{#link17}
-After examining the models°Ø generalizability across datasets, we next decide to assess whether they are generalizable across space. In this section, we will take a look at two geographies - stations and neighborhoods.
+## 5.4. Generalizability across space
+After examining the models‚Äô generalizability across datasets, we next decide to assess whether they are generalizable across space. In this section, we will take a look at two geographies - stations and neighborhoods.
 
-### 5.4.1. Across stations{#link18}
+### 5.4.1. Across stations
 To calculate MAE by each station, for each of the two test sets, we take the mean of absolute error for every station in the given days.
 
 As shown by the following maps, departure and arrival models display similar patterns. On weekdays, stations with relatively higher MAEs are located in the northeast of San Francisco, while at weekends, it seems that those with higher MAES are concentrated in the southwest instead.
@@ -1458,12 +1417,12 @@ ggplot(data = glm2.2PredValues %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-23-1.png" width="50%" /><img src="final_markdown_files/figure-html/unnamed-chunk-23-2.png" width="50%" />
 
-### 5.4.2. Across neighborhoods{#link19}
+### 5.4.2. Across neighborhoods
 To calculate MAE by each neighborhood, for each of the two test sets, we take the mean of absolute error for every neighborhood in the given days.
 
 The evaluation approach we apply here is similar to the one used towards stations. The only difference is that we measure the mean of departure/arrival rather than the sum of departure/arrival as in the previous section. The mean of departure/arrival here means the average number of observed values per station per hour. The reason why we use this metric is that the number of bikeshare stations in each neighborhood varies considerably from one another, probably resulting in a bias in the total number of departure/arrival in neighborhoods.
 
-The four scatter plots below suggest that our models°Ø performances are consistent across neighborhoods whichever test set we use. It indicates both models are generalizable not only across stations but also across neighborhoods.
+The four scatter plots below suggest that our models‚Äô performances are consistent across neighborhoods whichever test set we use. It indicates both models are generalizable not only across stations but also across neighborhoods.
 
 ```r
 glm1.1PredValues %>%
@@ -1534,7 +1493,7 @@ glm2.2PredValues %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-25-1.png" width="50%" /><img src="final_markdown_files/figure-html/unnamed-chunk-25-2.png" width="50%" />
 
-## 5.5. Generalizability across time{#link20}
+## 5.5. Generalizability across time
 Both departure and arrival models are generalizable across time. The facetted line plots illustrate the trends displayed by MAE is almost identical to the ones of according observed departure/arrival. The performances of our models are consistent across the day, since the prediction errors are relatively larger when the observed values are high, and they are relatively smaller when the observed values are low.
 
 
@@ -1625,8 +1584,8 @@ ggplot(glm2.2PredValues %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-29-1.png" width="960" />
 
-## 5.6. Spatial Autocorrelation{#link21}
-To check whether there exists spatial autocorrelation in the residuals, we first randomly select an hour in both weekday and weekend testsets, and perform Moran°Øs I tests. Illustrated by the table below, the p-values of the four tests are higher than 0.05, indicating that spatial autocorrelation of the residuals is not significant.
+## 5.6. Spatial Autocorrelation
+To check whether there exists spatial autocorrelation in the residuals, we first randomly select an hour in both weekday and weekend testsets, and perform Moran‚Äôs I tests. Illustrated by the table below, the p-values of the four tests are higher than 0.05, indicating that spatial autocorrelation of the residuals is not significant.
 
 
 ```r
@@ -1803,7 +1762,7 @@ ggmap(map) +
 <img src="final_markdown_files/figure-html/unnamed-chunk-33-1.png" width="50%" /><img src="final_markdown_files/figure-html/unnamed-chunk-33-2.png" width="50%" />
 
 
-## 5.7. Temporal Autocorrelation{#link22}
+## 5.7. Temporal Autocorrelation
 Similarly, to see whether there exists temporal autocorrelation in the residuals, we first randomly select a station in the testsets, and then use the ACF to identify the correlations within time series. The graphs below do not suggest any strong correlation among the residuals across time. In other words, the temporal patterns in dependent variables are mostly explained by our models.
 
 
@@ -1863,15 +1822,15 @@ autoplot(acf(glm2.2PredValues %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-35-1.png" width="50%" /><img src="final_markdown_files/figure-html/unnamed-chunk-35-2.png" width="50%" />
 
-## 5.8. Conclusion{#link23}
+## 5.8. Conclusion
 Regarding accuracy, the models developed here do a very good job. Most residuals range from -1 to 0, meaning that the predictions will just slightly differ from the observed values. When it comes to generalizability, we evaluate the models from three aspects - across datasets, space, and time. Overall, the prediction error is positively associated with the observed value. We consider it is reasonable that the geography and time with larger number of departures/arrivals come with higher MAEs. In this sense, our models are generalizable. Unfortunately however, MAPE, another metric used quite often, does not work in this case, since any unit with an observed departure/arrival of 0 will result in a MAPE of infinity.
 
 We also measure whether there are spatial and temporal autocorrelation in the residuals by randomly selecting an hour and a station, respectively. What we find is that both spatial and temporal autocorrelation are not significant.
 
 ***
 
-# 6. Use Case{#link24}
-## 6.1 The App at a glance{#link25}
+# 6. Use Case
+## 6.1 The App at a glance
 The existing Ford GoBike App can tell you the current number of bikes and docks of each station, but fails to tell if there will be available bikes or docks when I actually arrive at the station, and how to plan my trip efficiently.
 
 The new App we design is to make the system more connected, smart, and efficient. Firstly, you can plan the trip by setting a location and departure time. The App will show the predicted number of bikes and docks in the time you choose. Then, it will provide three most recommended routes, and encourage you moving bikes from full station to empty station by giving you bonus points as coupons. 
@@ -1880,18 +1839,18 @@ For example, if I know there will be no available bikes in Station A in one hour
 
 <img src="final_markdown_files/figure-html/app pic1-1.png" width="768" style="display: block; margin: auto;" />
   
-## 6.2 The App in detail{#link26} 
-### 6.2.1 Plan your trip{#link27} 
+## 6.2 The App in detail
+### 6.2.1 Plan your trip
 When entering the app, the user can first choose the origin from the locations used most often, or choose the others by clicking the "Where to" bar. Then the user can choose when to depart. It can be the current time, or a future time today. For example, the user can select 1 p.m. from the drop down menu if he/she wants to leave then.  
 
 <img src="final_markdown_files/figure-html/app pic2-1.png" width="1152" style="display: block; margin: auto;" />
   
-### 6.2.2 Recommend three routes{#link28}
+### 6.2.2 Recommend three routes
 After setting the location, the app will automatically give three suggested routes, which are based on two criteria: First, it should guarantee there are available bikes when the user arrives at the departure station, and available docks when reaching the destination station. Secondly, it will give bonus points to the routes that go from a bike-sufficient station to a dock-sufficient station. If the user chooses the first route, the app will show the detail of the trip. 
   
 <img src="final_markdown_files/figure-html/app pic3-1.png" width="1152" style="display: block; margin: auto;" />
   
-### 6.2.3 Customize your route{#link29}
+### 6.2.3 Customize your route
 If the user is unsatisfied with all three recommended routes, he/she can go back and customize the OD stations. By clicking a specific station, the App will show its detailed information, including current available bikes, predicted arrival, and departure, based on which the number of available bikes when arriving is given. The graph at the bottom shows the hourly available bikes. The predicted numbers in the future are shown as dash line. In addition, it will show how many bonus points will be given if the user unlock a bike here. For Bryant and 6th St station, since it has few available bikes, the user will get zero point if picking it as the origin. Victoria Manalo Draves Park station has lots of predicted available bikes. Hence the user will get 15 points to set it as the origin, because he/she helps rebalance the system.
 
 Similarly, the user will know the stations around the destination, and also the relevant information. The bonus I will get depends on the dock availability when arriving.  
@@ -1902,11 +1861,11 @@ After setting the OD stations, the app will give the detailed routes.
 
 ***
 
-# 7. Potential Improvement{#link30}
-## 7.1. Modeling weekday and weekend separately{#link31}
+# 7. Potential Improvement
+## 7.1. Modeling weekday and weekend separately
 As previously mentioned, the patterns of weekday and weekend are totally different. On weekdays, typically there are two peaks when the number of departure and arrival are extremely high. Comparatively, the curves look like a bump, and peak hours do not exist at weekend. When building the regression model, however, we put both weekday and weekend into the same formula. The differences of weekday and weekend would be better identified if we can separate these two.
 
-## 7.2. Identifying different patterns across time for different stations{#link32}
+## 7.2. Identifying different patterns across time for different stations
 Admittedly, we did try to model the effect of time on departure/arrival during feature engineering. Nonetheless, what we may ignore is that every station has a different pattern of generating and absorbing trips across time. The following plot illustrates the comparison of observed departure of four randomly selected stations from the training set on Oct. 15th. Apparently, the trends of them do not match, as the Embarcadero at Steuart St Station has three peaks during the day, while 30th St at San Jose Ave Station has zero. It would be beneficial to add a variable that is able to combine the effect of station and time. Or perhaps it is just difficult for a linear model to simulate this kind of trend. In that case, more advanced algorithms would be helpful.
 
 
@@ -1933,7 +1892,7 @@ vars_train %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-36-1.png" width="960" />
 
-## 7.3. Amplifying the effect of peak hours{#link33}
+## 7.3. Amplifying the effect of peak hours
 One interesting fact we found about our models is that they tend to under-predict in weekday peak hours. Shown in the line plots below, the differences between observed and predicted are marginal except for evening peaks. This indicates that we need to consider how to amplify the impact of weekday peak hours in the next steps.
 
 
@@ -1975,11 +1934,11 @@ glm1.1PredValues %>%
 
 <img src="final_markdown_files/figure-html/unnamed-chunk-37-1.png" width="50%" /><img src="final_markdown_files/figure-html/unnamed-chunk-37-2.png" width="50%" />
 
-## 7.4. Modeling the difference between arrival and departure{#link34}
+## 7.4. Modeling the difference between arrival and departure
 Currently we are predicting departure and arrival separately. A more straightforward approach would be to model the difference between arrival and departure. If arrival - departure > 0, it means that the particular station will gain a net increase in the number of available bikes in a certain hour; otherwise it will gain a net increase in the number of available docks.
 
 
-# Appendix{#link35}
+# Appendix
 Below shows the codes developed to process the data.
 
 
